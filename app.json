@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "ios": {
+      "bundleIdentifier": "io.popex.cfont",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+    }},
+    "android": {
+      "package": "io.popex.cfont"
+    },
+    "scheme": "popexconnect",
+    "icon": "assets/image/app-icon.png",
+    "splash": {
+      "image": "assets/image/app-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#222222"
+    }
+  }
+}
