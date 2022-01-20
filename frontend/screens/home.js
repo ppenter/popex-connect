@@ -2,6 +2,7 @@ import { Text } from "galio-framework";
 import * as React from "react";
 import { useMoralisQuery } from "react-moralis";
 import { View } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
 import { PlaylistCarousel } from "../components/carousel";
 import { useContractContext } from "../contexts/contractContext";
 import { usePlayerContext } from "../contexts/playerContext";
@@ -33,12 +34,13 @@ export default function HomeScreen({ navigation }) {
     }
 
     setRecentSongs(allSongs);
-    console.log("allsongs: ", allSongs);
+    // console.log("allsongs: ", allSongs);
   };
 
   React.useEffect(() => {
     if (moralisSong.data) {
       loadSong();
+      console.log(moralisSong.data);
     }
   }, [moralisSong.data]);
 
@@ -47,10 +49,15 @@ export default function HomeScreen({ navigation }) {
   // console.log(contractsData.allsong);
   return (
     <View style={{ paddingTop: 0 }}>
-      <Text h3 bold color={theme.colors.text} style={{ left: 20 }}>
-        New Release
-      </Text>
-      <PlaylistCarousel items={resentSongs}></PlaylistCarousel>
+      <View style={{ flexDirection: "row", paddingLeft: 20 }}>
+        <Icon name="cafe" color={theme.colors.primary} size={40}></Icon>
+        <Text h3 bold color={theme.colors.text} style={{ marginLeft: 10 }}>
+          New Release
+        </Text>
+      </View>
+      <PlaylistCarousel
+        items={moralisSong.data ? moralisSong.data : []}
+      ></PlaylistCarousel>
     </View>
   );
 }

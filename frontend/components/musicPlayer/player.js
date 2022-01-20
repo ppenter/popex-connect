@@ -5,34 +5,31 @@ import React, { useState } from "react";
 import { useMoralisCloudFunction } from "react-moralis";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useMoralisContext } from "../../contexts/moralisContext";
 import { usePlayerContext } from "../../contexts/playerContext";
 import { useThemeContext } from "../../contexts/themeContext";
 
 export default function Player(props) {
   Icon.loadFont();
   const theme = useThemeContext().theme;
-  const mode = useThemeContext().mode;
   const playerContext = usePlayerContext();
 
   if (!playerContext.playlist || !playerContext.playbackInstance) {
     return null;
   }
-  // if (!playerContext.playbackInstance) {
-  //   return null;
-  // } else {
-  //   if (!playerContext.playbackInstance._loaded || !playerContext.playlist) {
-  //     return null;
-  //   }
-  // }
+
+  const moralis = useMoralisContext().moralis;
+
+  const likes = useMoralisContext().likes;
+
   function timeout(delay) {
     return new Promise((res) => setTimeout(res, delay));
   }
-  const [artist, setArtist] = useState("");
   const currentSong = playerContext.playlist[playerContext.currentIndex];
   const [isSeek, setIsSeek] = useState(false);
   const [seekValue, setSeekValue] = useState(0);
   const artistLoad = useMoralisCloudFunction("getUsernameOfAddress", {
-    ethAddress: currentSong.artist.toLowerCase(),
+    ethAddress: currentSong.attributes.creator.toLowerCase(),
   });
 
   const styles = StyleSheet.create({
@@ -114,7 +111,66 @@ export default function Player(props) {
             <Icon color={theme.colors.text} size={50} name={"chevron-down"} />
           </TouchableOpacity>
         }
-        style={{ marginTop: 60 }}
+        rightStyle={{ alignItems: "flex-end" }}
+        right={
+          moralis.user ? (
+            likes.includes(currentSong.attributes.uid) ? (
+              //Unlike button
+              <TouchableOpacity
+                onPress={(e) => {
+                  moralis.user.fetch();
+                  let templike = [];
+                  for (var i in likes) {
+                    if (likes[i] !== currentSong.attributes.uid) {
+                      templike.push(likes[i]);
+                    }
+                  }
+                  moralis.setUserData({ like: templike }).then(async () => {
+                    await timeout(100);
+                    moralis.user.fetch();
+                  });
+                }}
+              >
+                <Icon color="red" size={40} name={"heart"} />
+              </TouchableOpacity>
+            ) : (
+              //Like button
+              <TouchableOpacity
+                onPress={(e) => {
+                  moralis.user.fetch();
+                  let templike = [];
+                  for (var i in likes) {
+                    templike[i] = likes[i];
+                  }
+                  templike[likes.length] = currentSong.attributes.uid;
+                  moralis.setUserData({ like: templike }).then(async () => {
+                    await timeout(100);
+                    moralis.user.fetch();
+                  });
+                }}
+              >
+                <Icon
+                  color={theme.colors.text}
+                  size={40}
+                  name={"heart-outline"}
+                />
+              </TouchableOpacity>
+            )
+          ) : (
+            <TouchableOpacity
+              onPress={(e) => {
+                alert("Please login");
+              }}
+            >
+              <Icon
+                color={theme.colors.disable}
+                size={40}
+                name={"heart-outline"}
+              />
+            </TouchableOpacity>
+          )
+        }
+        style={{ marginTop: 60, width: "100%" }}
       />
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
@@ -126,7 +182,7 @@ export default function Player(props) {
           >
             <Card
               borderless
-              image={currentSong.artwork}
+              image={currentSong.attributes.coverURI}
               style={{ width: 300, height: 300 }}
               imageStyle={{
                 width: "100%",
@@ -139,14 +195,16 @@ export default function Player(props) {
           <View style={styles.shadowProp}>
             <View style={styles.infoContainer}>
               <Text h5 numberOfLines={1} color={theme.colors.text}>
-                {currentSong.title}
+                {currentSong.attributes.title}
               </Text>
               <Text
                 muted
                 numberOfLines={1}
                 style={{ maxWidth: "80%", marginTop: 10 }}
               >
-                {artistLoad.data ? artistLoad.data : currentSong.artist}
+                {artistLoad.data
+                  ? artistLoad.data
+                  : currentSong.attributes.creator}
               </Text>
               {/** Slider */}
               <Block style={styles.sliderContainer}>
@@ -167,6 +225,7 @@ export default function Player(props) {
                   thumbTintColor={theme.colors.primary}
                   minimumTrackTintColor={theme.colors.primary}
                   maximumTrackTintColor={theme.colors.secondary}
+                  trackStyle={{ height: 1 }}
                 ></Slider>
               </Block>
               <View
@@ -201,6 +260,7 @@ export default function Player(props) {
                     style={{ justifyContent: "center", width: 90, height: 90 }}
                     onPress={(e) => {
                       e.preventDefault();
+                      // console.log(moralis.user);
                       playerContext.togglePlay();
                     }}
                   >
@@ -229,6 +289,7 @@ export default function Player(props) {
                   style={{ justifyContent: "center", width: 50, height: 50 }}
                   onPress={(e) => {
                     e.preventDefault();
+                    // console.log(likes);
                     playerContext.handleNextTrack();
                   }}
                 >

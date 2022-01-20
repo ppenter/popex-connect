@@ -1,5 +1,7 @@
 import { Audio } from "expo-av";
 import React from "react";
+import { useMoralisCloudFunction } from "react-moralis";
+import MusicControl, { Command } from "react-native-music-control";
 
 export const PlayerContext = React.createContext({
   isModal: false,
@@ -36,20 +38,42 @@ export const PlayerContextProvider = (props) => {
   const [playbackInstance, setPlaybacknstance] = React.useState(null);
   const [duration, setDuration] = React.useState(0);
   const [position, setPosition] = React.useState(0);
+  const allName = useMoralisCloudFunction("getUsernameOfAllAddress");
+
+  async function setNowPlaying(_song) {
+    const _songDuration = await playbackInstance.getStatusAsync().then((e) => {
+      MusicControl.setNowPlaying({
+        title: _song.attributes.title,
+        artwork: _song.attributes.coverURI, // URL or RN's image require()
+        artist: allName.data[_song.attributes.creator]
+          ? allName.data[_song.attributes.creator].username
+          : _song.attributes.creator,
+        album: _song.attributes.album,
+        genre: _song.attributes.genre,
+        duration: e.durationMillis / 1000, // (Seconds)
+        // description: "", // Android Only
+        // color: 0xffffff, // Android Only - Notification Color
+        // colorized: true, // Android 8+ Only - Notification Color extracted from the artwork. Set to false to use the color property instead
+        // date: "1983-01-02T00:00:00Z", // Release Date (RFC 3339) - Android Only
+        // rating: 84, // Android Only (Boolean or Number depending on the type)
+        // notificationIcon: "my_custom_icon", // Android Only (String), Android Drawable resource name for a custom notification icon
+        // isLiveStream: true, // iOS Only (Boolean), Show or hide Live Indicator instead of seekbar on lock screen for live streams. Default value is false.
+      });
+    });
+  }
 
   async function initialize() {
     try {
       await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
         interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DUCK_OTHERS,
-        shouldDuckAndroid: true,
         staysActiveInBackground: true,
-        playThroughEarpieceAndroid: true,
       });
       const playbackObject = new Audio.Sound();
+      // await playbackObject.setVolumeAsync(0.5);
       setPlaybacknstance(playbackObject);
+
       console.log(playbackObject);
     } catch (e) {
       console.log(e);
@@ -59,7 +83,9 @@ export const PlayerContextProvider = (props) => {
   const reset = async () => {
     try {
       await playbackInstance.pauseAsync();
-      await playbackInstance.unloadAsync();
+      await playbackInstance.unloadAsync().then(async () => {
+        MusicControl.resetNowPlaying();
+      });
     } catch (e) {
       console.log(e);
     }
@@ -69,39 +95,61 @@ export const PlayerContextProvider = (props) => {
     if (playbackInstance && playlist) {
       let cindex = currentIndex;
       if (cindex > 0) {
-        await playbackInstance.unloadAsync();
-        console.log("have instance");
-
-        cindex > 0
-          ? setCurrentIndex((cindex -= 1))
-          : setCurrentIndex((cindex = 0));
-        try {
-          await playbackInstance.loadAsync(
-            { uri: playlist[cindex].url },
-            { shouldPlay: true }
-          );
-        } catch {}
+        await playbackInstance.unloadAsync().then(async () => {
+          try {
+            await playbackInstance
+              .loadAsync(
+                { uri: playlist[(cindex -= 1)].attributes.hash },
+                { shouldPlay: true }
+              )
+              .then((e) => {
+                setCurrentIndex(cindex);
+                MusicControl.setNowPlaying({
+                  title: playlist[cindex].attributes.title,
+                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
+                  artist: allName.data[playlist[cindex].attributes.creator]
+                    ? allName.data[playlist[cindex].attributes.creator].username
+                    : playlist[cindex].attributes.creator,
+                  album: playlist[cindex].attributes.album,
+                  genre: playlist[cindex].attributes.genre,
+                  duration: e.durationMillis / 1000, // (Seconds)
+                });
+              });
+          } catch {}
+        });
       } else {
       }
     }
   };
 
   const handleNextTrack = async () => {
-    if (playbackInstance && playlist) {
+    if (playbackInstance && playlist.length > 0) {
       let cindex = currentIndex;
       if (cindex < playlist.length - 1) {
-        await playbackInstance.unloadAsync();
-        console.log("have instance");
-
-        cindex < playlist.length - 1
-          ? setCurrentIndex((cindex += 1))
-          : setCurrentIndex((cindex = playlist.length - 1));
-        try {
-          await playbackInstance.loadAsync(
-            { uri: playlist[cindex].url },
-            { shouldPlay: true }
-          );
-        } catch {}
+        await playbackInstance.unloadAsync().then(async () => {
+          try {
+            await playbackInstance
+              .loadAsync(
+                { uri: playlist[(cindex += 1)].attributes.hash },
+                { shouldPlay: true }
+              )
+              .then((e) => {
+                setCurrentIndex(cindex);
+                MusicControl.setNowPlaying({
+                  title: playlist[cindex].attributes.title,
+                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
+                  artist: allName.data[playlist[cindex].attributes.creator]
+                    ? allName.data[playlist[cindex].attributes.creator].username
+                    : playlist[cindex].attributes.creator,
+                  album: playlist[cindex].attributes.album,
+                  genre: playlist[cindex].attributes.genre,
+                  duration: e.durationMillis / 1000, // (Seconds)
+                });
+              });
+          } catch (e) {
+            console.log(e);
+          }
+        });
       } else {
       }
     }
@@ -134,8 +182,12 @@ export const PlayerContextProvider = (props) => {
       }
       playbackInstance.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       await playbackInstance
-        .loadAsync({ uri: _playlist[index].url }, { shouldPlay: true })
+        .loadAsync(
+          { uri: _playlist[index].attributes.hash },
+          { shouldPlay: true }
+        )
         .then(() => {
+          setNowPlaying(_playlist[index]);
           setPlaylist(_playlist);
           setCurrentIndex(index);
         });
@@ -146,17 +198,134 @@ export const PlayerContextProvider = (props) => {
 
   const seekTo = async (_position) => {
     try {
-      await playbackInstance.setPositionAsync(_position);
-      await playbackInstance.playAsync();
+      await playbackInstance.setPositionAsync(_position).then(async (e) => {
+        MusicControl.updatePlayback({
+          elapsedTime: e.positionMillis / 1000,
+        });
+      });
+      await playbackInstance.playAsync().then(async (e) => {
+        MusicControl.updatePlayback({
+          state: MusicControl.STATE_PLAYING,
+        });
+      });
     } catch {}
   };
 
-  const onPlaybackStatusUpdate = (status) => {
+  const onPlaybackStatusUpdate = async (status) => {
+    if (status.didJustFinish) {
+      handleNextTrack();
+    }
     setIsPlaying(status.isPlaying);
     setIsBuffering(status.isBuffering);
     setPosition(status.positionMillis);
     setDuration(status.durationMillis);
   };
+
+  // Music Control //
+
+  MusicControl.handleAudioInterruptions(true);
+  MusicControl.enableBackgroundMode(true);
+  MusicControl.enableControl(Command.changePlaybackPosition, true);
+  MusicControl.enableControl(Command.play, true);
+  MusicControl.enableControl(Command.pause, true);
+  MusicControl.enableControl("nextTrack", true);
+  MusicControl.enableControl("previousTrack", true);
+  MusicControl.enableControl(Command.closeNotification, true, {
+    when: "always",
+  });
+
+  MusicControl.on(Command.play, async () => {
+    try {
+      isPlaying
+        ? await playbackInstance.pauseAsync()
+        : await playbackInstance.playAsync();
+    } catch {}
+  });
+  MusicControl.on(Command.pause, async () => {
+    try {
+      isPlaying
+        ? await playbackInstance.pauseAsync()
+        : await playbackInstance.playAsync();
+    } catch {}
+  });
+  MusicControl.on(Command.changePlaybackPosition, async (_position) => {
+    try {
+      await playbackInstance
+        .setPositionAsync(parseInt(_position * 1000))
+        .then(async (e) => {
+          MusicControl.updatePlayback({
+            state: MusicControl.STATE_PLAYING,
+            elapsedTime: e.positionMillis / 1000,
+          });
+        });
+      await playbackInstance.playAsync();
+    } catch (e) {
+      alert(e);
+    }
+  });
+  MusicControl.on(Command.nextTrack, async () => {
+    if (playbackInstance && playlist.length > 0) {
+      let cindex = currentIndex;
+      if (cindex < playlist.length - 1) {
+        await playbackInstance.unloadAsync().then(async () => {
+          try {
+            await playbackInstance
+              .loadAsync(
+                { uri: playlist[(cindex += 1)].attributes.hash },
+                { shouldPlay: true }
+              )
+              .then((e) => {
+                setCurrentIndex(cindex);
+                MusicControl.setNowPlaying({
+                  title: playlist[cindex].attributes.title,
+                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
+                  artist: allName.data[playlist[cindex].attributes.creator]
+                    ? allName.data[playlist[cindex].attributes.creator].username
+                    : playlist[cindex].attributes.creator,
+                  album: playlist[cindex].attributes.album,
+                  genre: playlist[cindex].attributes.genre,
+                  duration: e.durationMillis / 1000, // (Seconds)
+                });
+              });
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      } else {
+      }
+    }
+  });
+
+  MusicControl.on(Command.previousTrack, async () => {
+    if (playbackInstance && playlist) {
+      let cindex = currentIndex;
+      if (cindex > 0) {
+        await playbackInstance.unloadAsync().then(async () => {
+          try {
+            await playbackInstance
+              .loadAsync(
+                { uri: playlist[(cindex -= 1)].attributes.hash },
+                { shouldPlay: true }
+              )
+              .then((e) => {
+                setCurrentIndex(cindex);
+                MusicControl.setNowPlaying({
+                  title: playlist[cindex].attributes.title,
+                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
+                  artist: allName.data[playlist[cindex].attributes.creator]
+                    ? allName.data[playlist[cindex].attributes.creator].username
+                    : playlist[cindex].attributes.creator,
+                  album: playlist[cindex].attributes.album,
+                  genre: playlist[cindex].attributes.genre,
+                  duration: e.durationMillis / 1000, // (Seconds)
+                });
+              });
+          } catch {}
+        });
+      } else {
+      }
+    }
+  });
 
   const value = {
     isModal: modalVisible,

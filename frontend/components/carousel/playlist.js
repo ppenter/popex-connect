@@ -1,21 +1,18 @@
 import { BlurView } from "expo-blur";
 import { Card, Text } from "galio-framework";
-import React, { useEffect } from "react";
-import { useMoralisCloudFunction } from "react-moralis";
+import React from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { useMoralisContext } from "../../contexts/moralisContext";
 import { usePlayerContext } from "../../contexts/playerContext";
 import { useThemeContext } from "../../contexts/themeContext";
 export default function PlaylistCarousel(props) {
   const { items, width = 160, height = 180 } = props;
   const theme = useThemeContext().theme;
   const player = usePlayerContext();
-  const allName = useMoralisCloudFunction("getUsernameOfAllAddress");
-  useEffect(() => {
-    console.log(allName.data);
-  }, [allName.data]);
+  const allName = useMoralisContext().allName;
 
-  if (!items || !allName.data) {
+  if (!items) {
     return null;
   }
 
@@ -51,7 +48,7 @@ export default function PlaylistCarousel(props) {
       <Card
         borderless
         style={{ width: 150, height: 150, padding: 0 }}
-        image={item.artwork}
+        image={item.attributes.coverURI}
         imageStyle={{ width: "100%", height: "100%" }}
       >
         <BlurView
@@ -67,12 +64,12 @@ export default function PlaylistCarousel(props) {
           }}
         >
           <Text p bold color={theme.colors.text}>
-            {item.title}
+            {item.attributes.title}
           </Text>
           <Text mute numberOfLines={1} color={theme.colors.text}>
-            {allName.data[item.artist]
-              ? allName.data[item.artist].username
-              : item.artist}
+            {allName[item.attributes.creator]
+              ? allName[item.attributes.creator].username
+              : item.attributes.creator}
           </Text>
         </BlurView>
       </Card>

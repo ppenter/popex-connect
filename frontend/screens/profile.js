@@ -32,10 +32,18 @@ export default function ProfileScreen({ navigation }) {
   if (!isAuthenticated) {
     return (
       <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-        <Text h3 bold color={colors.text}>
-          Profile
-        </Text>
+        <View style={{ flexDirection: "row" }}>
+          <Icon
+            name="person-circle-outline"
+            color={colors.primary}
+            size={40}
+          ></Icon>
+          <Text h3 bold color={colors.text} style={{ marginLeft: 10 }}>
+            Account
+          </Text>
+        </View>
         <Button
+          color={colors.primary}
           style={{ width: "100%", padding: 0, margin: 0, marginTop: 20 }}
           onPress={async (e) => {
             e.preventDefault();
@@ -51,9 +59,16 @@ export default function ProfileScreen({ navigation }) {
   return (
     <Root>
       <View style={{ paddingHorizontal: 20 }}>
-        <Text h3 color={colors.text} style={{ marginTop: 0 }}>
-          Profile
-        </Text>
+        <View style={{ flexDirection: "row" }}>
+          <Icon
+            name="person-circle-outline"
+            color={colors.primary}
+            size={40}
+          ></Icon>
+          <Text h3 bold color={colors.text} style={{ marginLeft: 10 }}>
+            Account
+          </Text>
+        </View>
         <Card
           backgroundColor={colors.background}
           opacity={1}
@@ -115,6 +130,7 @@ export default function ProfileScreen({ navigation }) {
               {user.get("ethAddress")}
             </Text>
             <Button
+              color={colors.primary}
               style={{ width: "100%", margin: 0, padding: 0 }}
               onPress={() => logout()}
             >

@@ -10,12 +10,12 @@
     "android": {
       "package": "io.popex.cfont"
     },
-    "scheme": "popexconnect",
+    "scheme": "POPEX",
     "icon": "assets/image/app-icon.png",
     "splash": {
       "image": "assets/image/app-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#222222"
+      "backgroundColor": "#000000"
     }
   }
 }

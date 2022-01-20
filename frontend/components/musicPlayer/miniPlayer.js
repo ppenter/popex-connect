@@ -1,5 +1,6 @@
 import { Text } from "galio-framework";
 import React from "react";
+import { useMoralisCloudFunction } from "react-moralis";
 import { Image, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { usePlayerContext } from "../../contexts/playerContext";
@@ -9,15 +10,17 @@ export default function MiniPlayer(props) {
   Icon.loadFont();
   const playerContext = usePlayerContext();
   const theme = useThemeContext().theme;
-
+  const allName = useMoralisCloudFunction("getUsernameOfAllAddress");
   if (
     !playerContext.playlist ||
     playerContext.isModal ||
     !playerContext.playbackInstance ||
-    !playerContext.playbackInstance._loaded
+    !playerContext.playbackInstance._loaded ||
+    !allName.data
   ) {
     return null;
   }
+
   // if (!playerContext.playbackInstance) {
   //   return null;
   // } else {
@@ -91,17 +94,21 @@ export default function MiniPlayer(props) {
               style={{ width: "100%", height: "100%", borderRadius: 10 }}
               source={{
                 url: playerContext.playbackInstance._loaded
-                  ? currentSong.artwork
+                  ? currentSong.attributes.coverURI
                   : "",
               }}
             />
           </View>
           <View style={{ marginLeft: 20 }}>
             <Text p color={theme.colors.text}>
-              {playerContext.playbackInstance._loaded ? currentSong.title : ""}
+              {playerContext.playbackInstance._loaded
+                ? currentSong.attributes.title
+                : ""}
             </Text>
-            <Text muted numberOfLines={1} style={{ maxWidth: 100 }}>
-              {playerContext.playbackInstance._loaded ? currentSong.artist : ""}
+            <Text mute numberOfLines={1} color={theme.colors.text}>
+              {allName.data[currentSong.attributes.creator]
+                ? allName.data[currentSong.attributes.creator].username
+                : currentSong.attributes.creator}
             </Text>
           </View>
         </View>

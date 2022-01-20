@@ -21,7 +21,12 @@ export default function TabNav(props) {
       <Drawer.Navigator
         screenOptions={({ navigation }) => ({
           headerShown: true,
-          drawerLabelStyle: { fontSize: 18 },
+          drawerActiveBackgroundColor: theme.colors.primary,
+          drawerLabelStyle: { fontSize: 18, color: theme.colors.text },
+          drawerStyle: {
+            backgroundColor: theme.colors.background,
+            width: 240,
+          },
           headerTitleStyle: { display: "none" },
           headerStyle: {
             backgroundColor: "transparent",
