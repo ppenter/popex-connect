@@ -1,9 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 
-export const GlobalContext = React.createContext({});
+export const GlobalContext = React.createContext({
+  trigger: false,
+  toggleTrigger: () => null,
+});
 
 export const GlobalContextProvider = (props) => {
-  const value = {};
+  const [trigger, setTrigger] = useState(false);
+
+  const toggleTrigger = () => {
+    trigger ? setTrigger(false) : setTrigger(true);
+    console.log(trigger);
+  };
+  const value = {
+    trigger: trigger,
+    toggleTrigger,
+  };
 
   return (
     <GlobalContext.Provider value={value}>

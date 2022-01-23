@@ -5,17 +5,81 @@ import React, { useState } from "react";
 import { useMoralisCloudFunction } from "react-moralis";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import { useMoralisContext } from "../../contexts/moralisContext";
 import { usePlayerContext } from "../../contexts/playerContext";
 import { useThemeContext } from "../../contexts/themeContext";
+import LikeButton from "../button/likeButton";
+
+const styles = StyleSheet.create({
+  infoContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
+    padding: 30,
+  },
+  shadowProp: {
+    width: "100%",
+  },
+  sliderContainer: {
+    alignItems: "stretch",
+    justifyContent: "center",
+    width: "100%",
+    marginTop: 20,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
+  },
+  filter: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+  },
+  modalView: {
+    width: "100%",
+    height: "90%",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    elevation: 5,
+    paddingHorizontal: 0,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: "#F194FF",
+  },
+  buttonClose: {},
+  textStyle: {
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+  },
+});
 
 export default function Player(props) {
   Icon.loadFont();
   const theme = useThemeContext().theme;
+  const mode = useThemeContext().mode;
   const playerContext = usePlayerContext();
 
   if (!playerContext.playlist || !playerContext.playbackInstance) {
     return null;
+  }
+
+  function millisToMinutesAndSeconds(millis) {
+    var minutes = Math.floor(millis / 60000);
+    var seconds = ((millis % 60000) / 1000).toFixed(0);
+    return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
   }
 
   const moralis = useMoralisContext().moralis;
@@ -32,65 +96,7 @@ export default function Player(props) {
     ethAddress: currentSong.attributes.creator.toLowerCase(),
   });
 
-  const styles = StyleSheet.create({
-    infoContainer: {
-      backgroundColor: theme.colors.background,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 20,
-      padding: 30,
-    },
-    shadowProp: {
-      width: "100%",
-      shadowColor: "#000000",
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.3,
-      shadowRadius: 5,
-    },
-    sliderContainer: {
-      alignItems: "stretch",
-      justifyContent: "center",
-      width: "100%",
-      marginTop: 20,
-    },
-    centeredView: {
-      flex: 1,
-      justifyContent: "flex-start",
-      alignItems: "center",
-      width: "100%",
-      height: "100%",
-    },
-    filter: {
-      width: "100%",
-      height: "100%",
-      position: "absolute",
-    },
-    modalView: {
-      width: "100%",
-      height: "90%",
-      alignItems: "center",
-      justifyContent: "space-evenly",
-      elevation: 5,
-      paddingHorizontal: 30,
-    },
-    button: {
-      borderRadius: 20,
-      padding: 10,
-      elevation: 2,
-    },
-    buttonOpen: {
-      backgroundColor: "#F194FF",
-    },
-    buttonClose: {},
-    textStyle: {
-      fontWeight: "bold",
-      textAlign: "center",
-    },
-    modalText: {
-      marginBottom: 15,
-      textAlign: "center",
-    },
-  });
+  const handleRepeatLoopButton = () => {};
 
   return (
     <Modal
@@ -99,7 +105,7 @@ export default function Player(props) {
       visible={playerContext.isModal}
       onRequestClose={() => {}}
     >
-      <BlurView intensity={100} tint="dark" style={styles.filter} />
+      <BlurView intensity={100} tint={mode} style={styles.filter} />
       <NavBar
         transparent
         left={
@@ -112,64 +118,7 @@ export default function Player(props) {
           </TouchableOpacity>
         }
         rightStyle={{ alignItems: "flex-end" }}
-        right={
-          moralis.user ? (
-            likes.includes(currentSong.attributes.uid) ? (
-              //Unlike button
-              <TouchableOpacity
-                onPress={(e) => {
-                  moralis.user.fetch();
-                  let templike = [];
-                  for (var i in likes) {
-                    if (likes[i] !== currentSong.attributes.uid) {
-                      templike.push(likes[i]);
-                    }
-                  }
-                  moralis.setUserData({ like: templike }).then(async () => {
-                    await timeout(100);
-                    moralis.user.fetch();
-                  });
-                }}
-              >
-                <Icon color="red" size={40} name={"heart"} />
-              </TouchableOpacity>
-            ) : (
-              //Like button
-              <TouchableOpacity
-                onPress={(e) => {
-                  moralis.user.fetch();
-                  let templike = [];
-                  for (var i in likes) {
-                    templike[i] = likes[i];
-                  }
-                  templike[likes.length] = currentSong.attributes.uid;
-                  moralis.setUserData({ like: templike }).then(async () => {
-                    await timeout(100);
-                    moralis.user.fetch();
-                  });
-                }}
-              >
-                <Icon
-                  color={theme.colors.text}
-                  size={40}
-                  name={"heart-outline"}
-                />
-              </TouchableOpacity>
-            )
-          ) : (
-            <TouchableOpacity
-              onPress={(e) => {
-                alert("Please login");
-              }}
-            >
-              <Icon
-                color={theme.colors.disable}
-                size={40}
-                name={"heart-outline"}
-              />
-            </TouchableOpacity>
-          )
-        }
+        right={<LikeButton songId={currentSong.attributes.uid} />}
         style={{ marginTop: 60, width: "100%" }}
       />
       <View style={styles.centeredView}>
@@ -177,13 +126,17 @@ export default function Player(props) {
           <View
             style={{
               alignItems: "center",
-              paddingHorizontal: 40,
+              paddingHorizontal: 30,
             }}
           >
             <Card
               borderless
-              image={currentSong.attributes.coverURI}
-              style={{ width: 300, height: 300 }}
+              image={
+                playerContext.playbackInstance._loaded
+                  ? currentSong.attributes.coverURI
+                  : ""
+              }
+              style={{ width: "100%", aspectRatio: 1 }}
               imageStyle={{
                 width: "100%",
                 height: "100%",
@@ -194,20 +147,44 @@ export default function Player(props) {
           {/** Infomation container */}
           <View style={styles.shadowProp}>
             <View style={styles.infoContainer}>
-              <Text h5 numberOfLines={1} color={theme.colors.text}>
-                {currentSong.attributes.title}
+              <Text h5 bold numberOfLines={1} color={theme.colors.text}>
+                {playerContext.playbackInstance._loaded
+                  ? currentSong.attributes.title
+                  : " "}
               </Text>
               <Text
                 muted
                 numberOfLines={1}
                 style={{ maxWidth: "80%", marginTop: 10 }}
               >
-                {artistLoad.data
+                {playerContext.playbackInstance._loaded
                   ? artistLoad.data
-                  : currentSong.attributes.creator}
+                    ? artistLoad.data
+                    : currentSong.attributes.creator
+                  : " "}
               </Text>
               {/** Slider */}
               <Block style={styles.sliderContainer}>
+                <View
+                  style={{
+                    justifyContent: "space-between",
+                    flexDirection: "row",
+                  }}
+                >
+                  <Text color={theme.colors.text}>
+                    {playerContext.position
+                      ? isSeek
+                        ? millisToMinutesAndSeconds(seekValue)
+                        : millisToMinutesAndSeconds(playerContext.position)
+                      : "0:00"}
+                  </Text>
+                  <Text color={theme.colors.text}>
+                    {playerContext.duration
+                      ? millisToMinutesAndSeconds(playerContext.duration)
+                      : "0:00"}
+                  </Text>
+                </View>
+
                 <Slider
                   onValueChange={(e) => {
                     setSeekValue(e);
@@ -225,7 +202,7 @@ export default function Player(props) {
                   thumbTintColor={theme.colors.primary}
                   minimumTrackTintColor={theme.colors.primary}
                   maximumTrackTintColor={theme.colors.secondary}
-                  trackStyle={{ height: 1 }}
+                  trackStyle={{ height: 4 }}
                 ></Slider>
               </Block>
               <View
@@ -238,6 +215,18 @@ export default function Player(props) {
                   marginTop: 10,
                 }}
               >
+                {/* Repeat one icon */}
+                <TouchableOpacity
+                  style={{ justifyContent: "center", width: 30, height: 30 }}
+                  onPress={(e) => {
+                    e.preventDefault();
+                  }}
+                >
+                  <Icon name="shuffle" size={30} color={theme.colors.disable} />
+                </TouchableOpacity>
+                {/* Repeat one icon */}
+
+                {/* Skip back icon */}
                 <TouchableOpacity
                   style={{
                     justifyContent: "center",
@@ -255,20 +244,23 @@ export default function Player(props) {
                     color={theme.colors.text}
                   />
                 </TouchableOpacity>
+                {/* Skip back icon */}
+
+                {/* Pause & pause icon */}
                 {playerContext.isPlaying ? (
                   <TouchableOpacity
-                    style={{ justifyContent: "center", width: 90, height: 90 }}
+                    style={{
+                      justifyContent: "center",
+                      width: 90,
+                      height: 90,
+                      padding: 15,
+                    }}
                     onPress={(e) => {
                       e.preventDefault();
-                      // console.log(moralis.user);
                       playerContext.togglePlay();
                     }}
                   >
-                    <Icon
-                      name="pause-circle"
-                      size={90}
-                      color={theme.colors.text}
-                    />
+                    <Icon name="pause" size={60} color={theme.colors.text} />
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
@@ -285,11 +277,13 @@ export default function Player(props) {
                     />
                   </TouchableOpacity>
                 )}
+                {/* Pause & pause icon */}
+
+                {/* Skip forward icon */}
                 <TouchableOpacity
                   style={{ justifyContent: "center", width: 50, height: 50 }}
                   onPress={(e) => {
                     e.preventDefault();
-                    // console.log(likes);
                     playerContext.handleNextTrack();
                   }}
                 >
@@ -299,7 +293,35 @@ export default function Player(props) {
                     color={theme.colors.text}
                   />
                 </TouchableOpacity>
+                {/* Skip forward icon */}
+
+                {/* Repeat one icon */}
+                <TouchableOpacity
+                  style={{ justifyContent: "center", width: 30, height: 30 }}
+                  onPress={(e) => {
+                    e.preventDefault();
+                    handleRepeatLoopButton();
+                  }}
+                >
+                  <MaterialIcon
+                    name={playerContext.isRepeat ? "repeat-one" : "repeat"}
+                    size={30}
+                    color={
+                      playerContext.isLoop || playerContext.isRepeat
+                        ? theme.colors.text
+                        : theme.colors.disable
+                    }
+                  />
+                </TouchableOpacity>
+                {/* Repeat one icon */}
               </View>
+              <View
+                style={{
+                  width: "100%",
+                  flexDirection: "row",
+                  justifyContent: "space-evenly",
+                }}
+              ></View>
             </View>
           </View>
         </View>

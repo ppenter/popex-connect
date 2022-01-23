@@ -1,5 +1,5 @@
 import { Audio } from "expo-av";
-import React from "react";
+import React, { useEffect } from "react";
 import { useMoralisCloudFunction } from "react-moralis";
 import MusicControl, { Command } from "react-native-music-control";
 
@@ -7,6 +7,8 @@ export const PlayerContext = React.createContext({
   isModal: false,
   isPlaying: false,
   isBuffering: false,
+  isLoop: true,
+  isRepeat: false,
   playbackInstance: null,
   currentIndex: 0,
   duration: 0,
@@ -38,10 +40,18 @@ export const PlayerContextProvider = (props) => {
   const [playbackInstance, setPlaybacknstance] = React.useState(null);
   const [duration, setDuration] = React.useState(0);
   const [position, setPosition] = React.useState(0);
+  const [isLoop, setLoop] = React.useState(true);
+  const [isRepeat, setRepeat] = React.useState(false);
   const allName = useMoralisCloudFunction("getUsernameOfAllAddress");
 
+  useEffect(() => {
+    if (playbackInstance) {
+      playbackInstance.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+    }
+  }, [playlist, currentIndex]);
+
   async function setNowPlaying(_song) {
-    const _songDuration = await playbackInstance.getStatusAsync().then((e) => {
+    await playbackInstance.getStatusAsync().then((e) => {
       MusicControl.setNowPlaying({
         title: _song.attributes.title,
         artwork: _song.attributes.coverURI, // URL or RN's image require()
@@ -51,13 +61,6 @@ export const PlayerContextProvider = (props) => {
         album: _song.attributes.album,
         genre: _song.attributes.genre,
         duration: e.durationMillis / 1000, // (Seconds)
-        // description: "", // Android Only
-        // color: 0xffffff, // Android Only - Notification Color
-        // colorized: true, // Android 8+ Only - Notification Color extracted from the artwork. Set to false to use the color property instead
-        // date: "1983-01-02T00:00:00Z", // Release Date (RFC 3339) - Android Only
-        // rating: 84, // Android Only (Boolean or Number depending on the type)
-        // notificationIcon: "my_custom_icon", // Android Only (String), Android Drawable resource name for a custom notification icon
-        // isLiveStream: true, // iOS Only (Boolean), Show or hide Live Indicator instead of seekbar on lock screen for live streams. Default value is false.
       });
     });
   }
@@ -73,8 +76,6 @@ export const PlayerContextProvider = (props) => {
       const playbackObject = new Audio.Sound();
       // await playbackObject.setVolumeAsync(0.5);
       setPlaybacknstance(playbackObject);
-
-      console.log(playbackObject);
     } catch (e) {
       console.log(e);
     }
@@ -123,7 +124,7 @@ export const PlayerContextProvider = (props) => {
   };
 
   const handleNextTrack = async () => {
-    if (playbackInstance && playlist.length > 0) {
+    if (playbackInstance && playlist) {
       let cindex = currentIndex;
       if (cindex < playlist.length - 1) {
         await playbackInstance.unloadAsync().then(async () => {
@@ -180,7 +181,6 @@ export const PlayerContextProvider = (props) => {
       if (playbackInstance._loaded) {
         await playbackInstance.unloadAsync();
       }
-      playbackInstance.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       await playbackInstance
         .loadAsync(
           { uri: _playlist[index].attributes.hash },
@@ -213,7 +213,7 @@ export const PlayerContextProvider = (props) => {
 
   const onPlaybackStatusUpdate = async (status) => {
     if (status.didJustFinish) {
-      handleNextTrack();
+      await handleNextTrack();
     }
     setIsPlaying(status.isPlaying);
     setIsBuffering(status.isBuffering);
@@ -331,6 +331,8 @@ export const PlayerContextProvider = (props) => {
     isModal: modalVisible,
     isPlaying: isPlaying,
     isBuffering: isBuffering,
+    isLoop: isLoop,
+    isRepeat: isRepeat,
     currentIndex: currentIndex,
     duration: duration,
     position: position,

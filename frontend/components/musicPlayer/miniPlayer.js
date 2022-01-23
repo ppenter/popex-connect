@@ -42,8 +42,9 @@ export default function MiniPlayer(props) {
     display: "flex",
     width: "100%",
     maxWidth: 1000,
-    height: 90,
-    bottom: 0,
+    height: 60,
+    bottom: 80,
+    position: "absolute",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
@@ -59,8 +60,8 @@ export default function MiniPlayer(props) {
     borderRadius: 20,
     justifyContent: "space-between",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.3,
     shadowRadius: 5,
   };
   const iconStyle = {
@@ -88,8 +89,7 @@ export default function MiniPlayer(props) {
         style={{ ...innerContainerStyle }}
       >
         <View style={{ ...trackContainer }}>
-          <View style={{ width: 60, height: 60 }}>
-            {/* {console.log(currentSong.artwork)} */}
+          <View style={{ width: 40, height: 40 }}>
             <Image
               style={{ width: "100%", height: "100%", borderRadius: 10 }}
               source={{
@@ -100,12 +100,17 @@ export default function MiniPlayer(props) {
             />
           </View>
           <View style={{ marginLeft: 20 }}>
-            <Text p color={theme.colors.text}>
+            <Text bold size={16} numberOfLines={1} color={theme.colors.text}>
               {playerContext.playbackInstance._loaded
                 ? currentSong.attributes.title
                 : ""}
             </Text>
-            <Text mute numberOfLines={1} color={theme.colors.text}>
+            <Text
+              mute
+              numberOfLines={1}
+              color={theme.colors.disable}
+              style={{ maxWidth: "70%" }}
+            >
               {allName.data[currentSong.attributes.creator]
                 ? allName.data[currentSong.attributes.creator].username
                 : currentSong.attributes.creator}
@@ -113,13 +118,27 @@ export default function MiniPlayer(props) {
           </View>
         </View>
 
-        <View style={{ ...buttonContainer }}>
-          <View style={{ height: "100%", justifyContent: "center" }}>
+        <View
+          style={{
+            ...buttonContainer,
+            position: "absolute",
+            right: 0,
+            top: 5,
+          }}
+        >
+          <View
+            style={{
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             {playerContext.isPlaying ? (
               <TouchableOpacity
                 style={{ justifyContent: "center", width: 50, height: 50 }}
                 onPress={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   playerContext.togglePlay();
                 }}
               >
@@ -135,6 +154,7 @@ export default function MiniPlayer(props) {
                 style={{ justifyContent: "center", width: 50, height: 50 }}
                 onPress={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   playerContext.togglePlay();
                 }}
               >

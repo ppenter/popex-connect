@@ -9,6 +9,7 @@ import { useThemeContext } from "../../contexts/themeContext";
 export default function PlaylistCarousel(props) {
   const { items, width = 160, height = 180 } = props;
   const theme = useThemeContext().theme;
+  const mode = useThemeContext().mode;
   const player = usePlayerContext();
   const allName = useMoralisContext().allName;
 
@@ -63,10 +64,10 @@ export default function PlaylistCarousel(props) {
             justifyContent: "center",
           }}
         >
-          <Text p bold color={theme.colors.text}>
+          <Text bold size={16} color={"white"} numberOfLines={1}>
             {item.attributes.title}
           </Text>
-          <Text mute numberOfLines={1} color={theme.colors.text}>
+          <Text mute numberOfLines={1} color={"white"}>
             {allName[item.attributes.creator]
               ? allName[item.attributes.creator].username
               : item.attributes.creator}
@@ -79,6 +80,7 @@ export default function PlaylistCarousel(props) {
   return (
     <View>
       <FlatList
+        showsHorizontalScrollIndicator={false}
         keyExtractor={(item, index) => {
           return item.id;
         }}

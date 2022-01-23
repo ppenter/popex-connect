@@ -1,17 +1,19 @@
 import { Button, Text } from "galio-framework";
 import * as React from "react";
 import { useMoralis } from "react-moralis";
-import { TextInput, View } from "react-native";
+import { ScrollView, TextInput, View } from "react-native";
 import { Root } from "react-native-alert-notification";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Card } from "react-native-shadow-cards";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useGlobalContext } from "../contexts/globalContext";
 import { useThemeContext } from "../contexts/themeContext";
 import { useWalletConnect } from "../WalletConnect";
 
 export default function ProfileScreen({ navigation }) {
   const [isNameEdit, setIsNameEdit] = React.useState(0);
   const [nameEdit, setNameEdit] = React.useState("");
+  const global = useGlobalContext();
   const colors = useThemeContext().theme.colors;
   const connector = useWalletConnect();
   const {
@@ -47,10 +49,10 @@ export default function ProfileScreen({ navigation }) {
           style={{ width: "100%", padding: 0, margin: 0, marginTop: 20 }}
           onPress={async (e) => {
             e.preventDefault();
-            await authenticate({ connector });
+            authenticate({ connector });
           }}
         >
-          Connect with Metamask
+          Connect with WalletConnect
         </Button>
       </View>
     );
@@ -58,7 +60,10 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <Root>
-      <View style={{ paddingHorizontal: 20 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ paddingHorizontal: 20 }}
+      >
         <View style={{ flexDirection: "row" }}>
           <Icon
             name="person-circle-outline"
@@ -104,6 +109,7 @@ export default function ProfileScreen({ navigation }) {
                 ></TextInput>
               ) : (
                 <Text
+                  bold
                   h4
                   color={colors.text}
                   style={{ maxWidth: "50%", marginVertical: 25 }}
@@ -132,14 +138,17 @@ export default function ProfileScreen({ navigation }) {
             <Button
               color={colors.primary}
               style={{ width: "100%", margin: 0, padding: 0 }}
-              onPress={() => logout()}
+              onPress={(e) => {
+                e.preventDefault();
+                logout();
+              }}
             >
               Logout
             </Button>
           </View>
           {/* <Input placeholder="regular" /> */}
         </Card>
-      </View>
+      </ScrollView>
     </Root>
   );
 }
