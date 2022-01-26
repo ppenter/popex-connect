@@ -6,12 +6,14 @@ import { TouchableOpacity, View } from "react-native";
 import ActionSheet from "react-native-actionsheet";
 import { useGlobalContext } from "../contexts/globalContext";
 import { useThemeContext } from "../contexts/themeContext";
+import { utils } from "../utils";
 
-export default function PlaylistScreenObject(props) {
+export default function PlaylistScreenObject({ navigation, route }) {
   let actionSheet = React.useRef();
   const theme = useThemeContext().theme;
   const moralis = useMoralis();
   const global = useGlobalContext();
+  const [selectedPlaylist, setSelectedPlaylist] = React.useState(null);
 
   const playlist = useMoralisQuery(
     "Playlist",
@@ -25,6 +27,46 @@ export default function PlaylistScreenObject(props) {
   if (!moralis.user || !playlist.data) {
     return null;
   }
+
+  const removeSongInPlaylist = async (_playlistId) => {
+    const SongInPlaylist = moralis.Moralis.Object.extend("SongInPlaylist");
+    const query = new moralis.Moralis.Query(SongInPlaylist);
+    query.equalTo("playlistId", _playlistId);
+    const object = await query.find();
+    console.log(object);
+    if (object.length > 0) {
+      for (var i = 0; i < object.length; i++) {
+        object[i].destroy();
+      }
+    }
+  };
+
+  const removePlaylist = async (id) => {
+    const Playlist = moralis.Moralis.Object.extend("Playlist");
+    const query = new moralis.Moralis.Query(Playlist);
+    query.equalTo("objectId", id);
+    const object = await query.find();
+    console.log(object);
+    if (object.length > 0) {
+      for (var i = 0; i < object.length; i++) {
+        object[i].destroy();
+      }
+    }
+    removeSongInPlaylist(id);
+    await utils.timeout(100);
+    global.toggleTrigger();
+  };
+
+  const handleLongPress = (item) => {
+    setSelectedPlaylist(item);
+    actionSheet.current.show();
+  };
+  const handlePress = async (item) => {
+    navigation.navigate("PlaylistInformationStack", {
+      playlist: item,
+    });
+  };
+
   return (
     <View style={{ minHeight: "90%" }}>
       {/* <Button
@@ -43,14 +85,14 @@ export default function PlaylistScreenObject(props) {
         {playlist.data.map((item, index) => {
           return (
             <TouchableOpacity
-              key={item.objectId}
+              key={item.id}
               onLongPress={(e) => {
                 e.preventDefault();
-                actionSheet.current.show();
+                handleLongPress(item);
               }}
               onPress={(e) => {
                 e.preventDefault();
-                alert("click playlist");
+                handlePress(item);
               }}
             >
               <Card
@@ -81,25 +123,31 @@ export default function PlaylistScreenObject(props) {
                   </Text>
                 </BlurView>
               </Card>
+              {selectedPlaylist ? (
+                <ActionSheet
+                  ref={actionSheet}
+                  // Title of the Bottom Sheet
+                  title={selectedPlaylist.attributes.name}
+                  // Options Array to show in bottom sheet
+                  options={["Delete", "Cancel"]}
+                  // Define cancel button index in the option array
+                  // This will take the cancel option in bottom
+                  // and will highlight it
+                  cancelButtonIndex={1}
+                  // Highlight any specific option
+                  destructiveButtonIndex={0}
+                  onPress={(index) => {
+                    if (index == 0) {
+                      console.log(selectedPlaylist.id);
+                      removePlaylist(selectedPlaylist.id);
+                    }
+                    // Clicking on the option will give you alert
+                  }}
+                />
+              ) : null}
             </TouchableOpacity>
           );
         })}
-        <ActionSheet
-          ref={actionSheet}
-          // Title of the Bottom Sheet
-          title={"Action"}
-          // Options Array to show in bottom sheet
-          options={["Delete", "Cancel"]}
-          // Define cancel button index in the option array
-          // This will take the cancel option in bottom
-          // and will highlight it
-          cancelButtonIndex={1}
-          // Highlight any specific option
-          destructiveButtonIndex={0}
-          onPress={(index) => {
-            // Clicking on the option will give you alert
-          }}
-        />
       </View>
     </View>
   );

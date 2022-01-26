@@ -3,6 +3,8 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { DrawerActions, NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as React from "react";
+import { useMoralis } from "react-moralis";
+import { View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/Ionicons";
 import {
@@ -12,6 +14,7 @@ import {
   ProfileScreen,
 } from "../../screens";
 import GenrePlaylist from "../../screens/genrePlaylist";
+import PlaylistInformationScreen from "../../screens/playlistInformation";
 import SearchScreen from "../../screens/search";
 import AddPlaylistButton from "../button/addPlaylistButton";
 
@@ -26,7 +29,7 @@ const HomeStackNavigator = ({ navigation, route }) => {
     <Stack.Navigator
       screenOptions={() => ({
         headerTitleStyle: { display: "none" },
-        headerShown: true,
+        headerShown: false,
         headerStyle: { backgroundColor: theme.colors.background },
         headerBackTitleVisible: false,
         headerBackImage: () => (
@@ -62,7 +65,7 @@ const FavoriteStackNavigator = ({ navigation, route }) => {
     <Stack.Navigator
       screenOptions={() => ({
         headerTitleStyle: { display: "none" },
-        headerShown: true,
+        headerShown: false,
         headerStyle: { backgroundColor: theme.colors.background },
       })}
     >
@@ -77,11 +80,15 @@ const PlaylistStackNavigator = ({ navigation, route }) => {
     <Stack.Navigator
       screenOptions={() => ({
         headerTitleStyle: { display: "none" },
-        headerShown: true,
+        headerShown: false,
         headerStyle: { backgroundColor: theme.colors.background },
       })}
     >
       <Stack.Screen name="PlaylistStack" component={PlaylistScreen} />
+      <Stack.Screen
+        name="PlaylistInformationStack"
+        component={PlaylistInformationScreen}
+      />
     </Stack.Navigator>
   );
 };
@@ -92,7 +99,7 @@ const ProfileStackNavigator = ({ navigation, route }) => {
     <Stack.Navigator
       screenOptions={() => ({
         headerTitleStyle: { display: "none" },
-        headerShown: true,
+        headerShown: false,
         headerStyle: { backgroundColor: theme.colors.background },
       })}
     >
@@ -102,22 +109,34 @@ const ProfileStackNavigator = ({ navigation, route }) => {
 };
 
 export default function TabNav(props) {
+  const moralis = useMoralis();
   const theme = props.theme;
   return (
     <NavigationContainer theme={theme}>
       <Tab.Navigator
         screenOptions={({ navigation, route }) => ({
+          tabBarShowLabel: false,
           tabBarStyle: {
             position: "absolute",
-            bottom: 0,
-            height: 80,
-            backgroundColor: theme.colors.background,
+            bottom: 20,
+            left: 20,
+            right: 20,
+            height: 50,
+            padding: 0,
+            borderRadius: 10,
+            shadowColor: "#000000",
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.3,
+            shadowRadius: 5,
           },
+          tabBarIconStyle: { padding: 0, height: 90 },
+          tabBarBadgeStyle: { height: 100 },
           headerShown: false,
           headerTitleStyle: { display: "none" },
           headerStyle: {
             backgroundColor: "transparent",
           },
+          tabBarItemStyle: { height: 50, justifyContent: "center" },
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
 
@@ -132,7 +151,15 @@ export default function TabNav(props) {
             }
 
             // You can return any component that you like here!
-            return <Icon name={iconName} size={size} color={color} />;
+            return (
+              <View style={{ height: "100%", justifyContent: "center" }}>
+                <Icon
+                  name={iconName}
+                  size={size}
+                  color={focused ? theme.colors.primary : theme.colors.disable}
+                />
+              </View>
+            );
           },
           headerLeft: () => (
             <TouchableOpacity
@@ -157,19 +184,25 @@ export default function TabNav(props) {
           component={HomeStackNavigator}
           initialParams={{ theme: theme }}
         />
-        <Tab.Screen
-          name="Favorite"
-          component={FavoriteStackNavigator}
-          initialParams={{ theme: theme }}
-        />
-        <Tab.Screen
-          options={{
-            headerRight: () => <AddPlaylistButton />,
-          }}
-          name="Playlist"
-          component={PlaylistStackNavigator}
-          initialParams={{ theme: theme }}
-        />
+        {moralis.user ? (
+          <Tab.Screen
+            name="Favorite"
+            component={FavoriteStackNavigator}
+            initialParams={{ theme: theme }}
+          />
+        ) : null}
+
+        {moralis.user ? (
+          <Tab.Screen
+            options={{
+              headerRight: () => <AddPlaylistButton />,
+            }}
+            name="Playlist"
+            component={PlaylistStackNavigator}
+            initialParams={{ theme: theme }}
+          />
+        ) : null}
+
         <Tab.Screen
           name="Profile"
           component={ProfileStackNavigator}

@@ -2,9 +2,14 @@ import { Audio } from "expo-av";
 import React, { useEffect } from "react";
 import { useMoralisCloudFunction } from "react-moralis";
 import MusicControl, { Command } from "react-native-music-control";
+import { utils } from "../utils";
 
 export const PlayerContext = React.createContext({
   isModal: false,
+  isMiniModal: false,
+  isPlaylistModal: false,
+  isAddToPlaylistModal: false,
+  addToPlaylistSongId: -1,
   isPlaying: false,
   isBuffering: false,
   isLoop: true,
@@ -22,12 +27,19 @@ export const PlayerContext = React.createContext({
   seekAndPlay: (position) => null,
   openModal: () => null,
   closeModal: () => null,
+  openPlaylistModal: () => null,
+  closePlaylistModal: () => null,
+  openAddToPlaylistModal: (id) => null,
+  closeAddToPlaylistModal: () => null,
+  setAddToPlaylistSong: () => null,
   initialize: () => null,
   playPlaylist: () => null,
   togglePlay: () => null,
   seekTo: () => null,
   handlePreviousTrack: () => null,
   handleNextTrack: () => null,
+  handleRepeatLoopButton: () => null,
+  shufflePlaylistWhilePlaying: () => null,
   reset: () => null,
 });
 
@@ -40,15 +52,65 @@ export const PlayerContextProvider = (props) => {
   const [playbackInstance, setPlaybacknstance] = React.useState(null);
   const [duration, setDuration] = React.useState(0);
   const [position, setPosition] = React.useState(0);
-  const [isLoop, setLoop] = React.useState(true);
-  const [isRepeat, setRepeat] = React.useState(false);
+  const [isLoop, setIsLoop] = React.useState(true);
+  const [isRepeat, setIsRepeat] = React.useState(false);
+  const [isMiniModal, setIsMiniModal] = React.useState(0);
+  const [isPlaylistModal, setIsPlaylistModal] = React.useState(false);
+  const [isAddToPlaylistModal, setIsAddToPlaylistModal] = React.useState(false);
+  const [addToPlaylistSongId, setAddtoPlaylistSongId] = React.useState("test");
   const allName = useMoralisCloudFunction("getUsernameOfAllAddress");
 
   useEffect(() => {
     if (playbackInstance) {
       playbackInstance.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
     }
-  }, [playlist, currentIndex]);
+    if (playlist) {
+      setPlaylist((prev) => prev);
+    }
+  }, [playlist, currentIndex, isLoop, isRepeat]);
+
+  const openPlaylistModal = async (id) => {
+    setIsPlaylistModal(true);
+  };
+  const closePlaylistModal = () => {
+    setIsPlaylistModal(false);
+  };
+
+  const setAddToPlaylistSong = (id) => {
+    setAddToPlaylistSong(id);
+  };
+
+  const openAddToPlaylistModal = async (id) => {
+    setAddtoPlaylistSongId(id);
+    await utils.timeout(100);
+    setIsAddToPlaylistModal(true);
+  };
+  const closeAddToPlaylistModal = () => {
+    setIsAddToPlaylistModal(false);
+  };
+
+  const shufflePlaylistWhilePlaying = async () => {
+    let exceptIndex = currentIndex;
+    let arrayToShuffle = [];
+    for (var i = 0; i < playlist.length; i++) {
+      arrayToShuffle[i] = playlist[i];
+    }
+
+    arrayToShuffle.splice(exceptIndex, 1);
+
+    utils.shuffle(arrayToShuffle);
+    let result = [];
+    for (var i = 0; i < playlist.length; i++) {
+      if (i == currentIndex) {
+        result[i] = playlist[i];
+      } else if (i > currentIndex) {
+        result[i] = arrayToShuffle[i - 1];
+      } else {
+        result[i] = arrayToShuffle[i];
+      }
+    }
+    await utils.timeout(50).then(setPlaylist(result));
+  };
 
   async function setNowPlaying(_song) {
     await playbackInstance.getStatusAsync().then((e) => {
@@ -82,13 +144,48 @@ export const PlayerContextProvider = (props) => {
   }
 
   const reset = async () => {
+    setIsMiniModal(false);
     try {
       await playbackInstance.pauseAsync();
       await playbackInstance.unloadAsync().then(async () => {
         MusicControl.resetNowPlaying();
       });
+      setPlaylist(null);
     } catch (e) {
       console.log(e);
+    }
+  };
+
+  const playAtIndex = async (_index) => {
+    if (playbackInstance && playlist) {
+      if (_index <= playlist.length) {
+        if (_index >= 0) {
+          await playbackInstance.unloadAsync().then(async () => {
+            try {
+              await playbackInstance
+                .loadAsync(
+                  { uri: playlist[_index].attributes.hash },
+                  { shouldPlay: true }
+                )
+                .then((e) => {
+                  setCurrentIndex(_index);
+                  MusicControl.setNowPlaying({
+                    title: playlist[_index].attributes.title,
+                    artwork: playlist[_index].attributes.coverURI, // URL or RN's image require()
+                    artist: allName.data[playlist[_index].attributes.creator]
+                      ? allName.data[playlist[_index].attributes.creator]
+                          .username
+                      : playlist[_index].attributes.creator,
+                    album: playlist[_index].attributes.album,
+                    genre: playlist[_index].attributes.genre,
+                    duration: e.durationMillis / 1000, // (Seconds)
+                  });
+                });
+            } catch {}
+          });
+        } else {
+        }
+      }
     }
   };
 
@@ -96,29 +193,9 @@ export const PlayerContextProvider = (props) => {
     if (playbackInstance && playlist) {
       let cindex = currentIndex;
       if (cindex > 0) {
-        await playbackInstance.unloadAsync().then(async () => {
-          try {
-            await playbackInstance
-              .loadAsync(
-                { uri: playlist[(cindex -= 1)].attributes.hash },
-                { shouldPlay: true }
-              )
-              .then((e) => {
-                setCurrentIndex(cindex);
-                MusicControl.setNowPlaying({
-                  title: playlist[cindex].attributes.title,
-                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
-                  artist: allName.data[playlist[cindex].attributes.creator]
-                    ? allName.data[playlist[cindex].attributes.creator].username
-                    : playlist[cindex].attributes.creator,
-                  album: playlist[cindex].attributes.album,
-                  genre: playlist[cindex].attributes.genre,
-                  duration: e.durationMillis / 1000, // (Seconds)
-                });
-              });
-          } catch {}
-        });
-      } else {
+        playAtIndex((cindex -= 1));
+      } else if (isLoop) {
+        playAtIndex((cindex = playlist.length - 1));
       }
     }
   };
@@ -127,31 +204,9 @@ export const PlayerContextProvider = (props) => {
     if (playbackInstance && playlist) {
       let cindex = currentIndex;
       if (cindex < playlist.length - 1) {
-        await playbackInstance.unloadAsync().then(async () => {
-          try {
-            await playbackInstance
-              .loadAsync(
-                { uri: playlist[(cindex += 1)].attributes.hash },
-                { shouldPlay: true }
-              )
-              .then((e) => {
-                setCurrentIndex(cindex);
-                MusicControl.setNowPlaying({
-                  title: playlist[cindex].attributes.title,
-                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
-                  artist: allName.data[playlist[cindex].attributes.creator]
-                    ? allName.data[playlist[cindex].attributes.creator].username
-                    : playlist[cindex].attributes.creator,
-                  album: playlist[cindex].attributes.album,
-                  genre: playlist[cindex].attributes.genre,
-                  duration: e.durationMillis / 1000, // (Seconds)
-                });
-              });
-          } catch (e) {
-            console.log(e);
-          }
-        });
-      } else {
+        playAtIndex((cindex += 1));
+      } else if (isLoop) {
+        playAtIndex((cindex = 0));
       }
     }
   };
@@ -177,16 +232,24 @@ export const PlayerContextProvider = (props) => {
   };
 
   const playPlaylist = async (_playlist, index) => {
+    setIsMiniModal(false);
+    await utils.timeout(50);
+    setIsMiniModal(true);
+    if (_playlist == playlist && index == currentIndex) {
+      return null;
+    } else {
+    }
     try {
       if (playbackInstance._loaded) {
         await playbackInstance.unloadAsync();
+      } else {
       }
       await playbackInstance
         .loadAsync(
           { uri: _playlist[index].attributes.hash },
           { shouldPlay: true }
         )
-        .then(() => {
+        .then(async () => {
           setNowPlaying(_playlist[index]);
           setPlaylist(_playlist);
           setCurrentIndex(index);
@@ -211,9 +274,24 @@ export const PlayerContextProvider = (props) => {
     } catch {}
   };
 
+  const handleRepeatLoopButton = () => {
+    if (!isLoop && !isRepeat) {
+      setIsLoop(true);
+    } else if (isLoop && !isRepeat) {
+      setIsRepeat(true);
+    } else {
+      setIsRepeat(false);
+      setIsLoop(false);
+    }
+  };
+
   const onPlaybackStatusUpdate = async (status) => {
     if (status.didJustFinish) {
-      await handleNextTrack();
+      if (isRepeat) {
+        playAtIndex(currentIndex);
+      } else {
+        await handleNextTrack();
+      }
     }
     setIsPlaying(status.isPlaying);
     setIsBuffering(status.isBuffering);
@@ -264,34 +342,12 @@ export const PlayerContextProvider = (props) => {
     }
   });
   MusicControl.on(Command.nextTrack, async () => {
-    if (playbackInstance && playlist.length > 0) {
+    if (playbackInstance && playlist) {
       let cindex = currentIndex;
       if (cindex < playlist.length - 1) {
-        await playbackInstance.unloadAsync().then(async () => {
-          try {
-            await playbackInstance
-              .loadAsync(
-                { uri: playlist[(cindex += 1)].attributes.hash },
-                { shouldPlay: true }
-              )
-              .then((e) => {
-                setCurrentIndex(cindex);
-                MusicControl.setNowPlaying({
-                  title: playlist[cindex].attributes.title,
-                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
-                  artist: allName.data[playlist[cindex].attributes.creator]
-                    ? allName.data[playlist[cindex].attributes.creator].username
-                    : playlist[cindex].attributes.creator,
-                  album: playlist[cindex].attributes.album,
-                  genre: playlist[cindex].attributes.genre,
-                  duration: e.durationMillis / 1000, // (Seconds)
-                });
-              });
-          } catch (e) {
-            console.log(e);
-          }
-        });
-      } else {
+        playAtIndex((cindex += 1));
+      } else if (isLoop) {
+        playAtIndex((cindex = 0));
       }
     }
   });
@@ -299,37 +355,21 @@ export const PlayerContextProvider = (props) => {
   MusicControl.on(Command.previousTrack, async () => {
     if (playbackInstance && playlist) {
       let cindex = currentIndex;
+      console.log(cindex);
       if (cindex > 0) {
-        await playbackInstance.unloadAsync().then(async () => {
-          try {
-            await playbackInstance
-              .loadAsync(
-                { uri: playlist[(cindex -= 1)].attributes.hash },
-                { shouldPlay: true }
-              )
-              .then((e) => {
-                setCurrentIndex(cindex);
-                MusicControl.setNowPlaying({
-                  title: playlist[cindex].attributes.title,
-                  artwork: playlist[cindex].attributes.coverURI, // URL or RN's image require()
-                  artist: allName.data[playlist[cindex].attributes.creator]
-                    ? allName.data[playlist[cindex].attributes.creator].username
-                    : playlist[cindex].attributes.creator,
-                  album: playlist[cindex].attributes.album,
-                  genre: playlist[cindex].attributes.genre,
-                  duration: e.durationMillis / 1000, // (Seconds)
-                });
-              });
-          } catch {}
-        });
-      } else {
+        playAtIndex((cindex -= 1));
+      } else if (isLoop) {
+        playAtIndex((cindex = playlist.length - 1));
       }
     }
   });
 
   const value = {
     isModal: modalVisible,
+    isPlaylistModal: isPlaylistModal,
     isPlaying: isPlaying,
+    isAddToPlaylistModal: isAddToPlaylistModal,
+    addToPlaylistSongId: addToPlaylistSongId,
     isBuffering: isBuffering,
     isLoop: isLoop,
     isRepeat: isRepeat,
@@ -338,15 +378,23 @@ export const PlayerContextProvider = (props) => {
     position: position,
     playbackInstance: playbackInstance,
     playlist: playlist,
+    isMiniModal: isMiniModal,
     playPlaylist,
     openModal,
     closeModal,
+    openPlaylistModal,
+    closePlaylistModal,
+    openAddToPlaylistModal,
+    closeAddToPlaylistModal,
+    setAddToPlaylistSong,
     initialize,
     togglePlay,
     pause,
     seekTo,
     handlePreviousTrack,
     handleNextTrack,
+    handleRepeatLoopButton,
+    shufflePlaylistWhilePlaying,
     reset,
   };
 

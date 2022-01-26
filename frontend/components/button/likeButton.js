@@ -6,6 +6,7 @@ import { useGlobalContext } from "../../contexts/globalContext";
 import { useMoralisContext } from "../../contexts/moralisContext";
 import { useThemeContext } from "../../contexts/themeContext";
 export default function LikeButton(props) {
+  const { size = 25 } = props;
   const theme = useThemeContext().theme;
   const likes = useMoralisContext().likes;
   const moralis = useMoralis();
@@ -19,7 +20,7 @@ export default function LikeButton(props) {
           alert("Please login");
         }}
       >
-        <Icon color={theme.colors.disable} size={40} name={"heart-outline"} />
+        <Icon color={theme.colors.disable} size={size} name={"heart-outline"} />
       </TouchableOpacity>
     );
   }
@@ -78,9 +79,9 @@ export default function LikeButton(props) {
       }}
     >
       {likes.includes(songId) ? (
-        <Icon color={theme.colors.primary} size={40} name={"heart"} />
+        <Icon color={theme.colors.primary} size={size} name={"heart"} />
       ) : (
-        <Icon color={theme.colors.text} size={40} name={"heart-outline"} />
+        <Icon color={theme.colors.text} size={size} name={"heart-outline"} />
       )}
     </TouchableOpacity>
   );

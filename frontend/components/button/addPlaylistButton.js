@@ -4,7 +4,9 @@ import { TouchableOpacity, View } from "react-native";
 import Dialog from "react-native-dialog";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useGlobalContext } from "../../contexts/globalContext";
+import { useMoralisContext } from "../../contexts/moralisContext";
 import { useThemeContext } from "../../contexts/themeContext";
+import { utils } from "../../utils";
 export default function AddPlaylistButton(props) {
   const theme = useThemeContext().theme;
   const global = useGlobalContext();
@@ -12,12 +14,13 @@ export default function AddPlaylistButton(props) {
   const [nameOfNewPlaylist, setNameOfNewPlaylist] = useState("");
 
   const moralis = useMoralis();
+  const moralisFunction = useMoralisContext();
 
   if (!moralis.Moralis.User.current()) {
     return null;
   }
 
-  const addPlaylist = (name) => {
+  const addPlaylist = async (name) => {
     const Playlist = moralis.Moralis.Object.extend("Playlist");
     const newPlaylist = new Playlist();
     newPlaylist.set("name", name);
@@ -28,6 +31,7 @@ export default function AddPlaylistButton(props) {
     ACL.setWriteAccess(moralis.Moralis.User.current(), true);
     newPlaylist.setACL(ACL);
     newPlaylist.save();
+    await utils.timeout(100);
     global.toggleTrigger();
   };
 

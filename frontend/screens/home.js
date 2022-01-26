@@ -5,6 +5,7 @@ import { TouchableOpacity, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/Ionicons";
 import { PlaylistCarousel } from "../components/carousel";
+import Footer from "../components/navigation/footer";
 import { useContractContext } from "../contexts/contractContext";
 import { usePlayerContext } from "../contexts/playerContext";
 import { useThemeContext } from "../contexts/themeContext";
@@ -46,21 +47,27 @@ export default function HomeScreen({ navigation }) {
 
   const contractsData = useContractContext();
   const theme = useThemeContext().theme;
+  const mode = useThemeContext().mode;
   const genre = [
-    { name: "hiphop", color: "#6059F7" },
-    { name: "lofi", color: "#6692FF" },
-    { name: "rock", color: "#37C3FF" },
-    { name: "pop", color: "#8D60FF" },
-    { name: "metal", color: "#6059F7" },
-    { name: "jazz", color: "#6692FF" },
-    { name: "indy", color: "#37C3FF" },
-    { name: "rap", color: "#8D60FF" },
+    { name: "hiphop", color: theme.colors.card },
+    { name: "lofi", color: theme.colors.card },
+    { name: "rock", color: theme.colors.card },
+    { name: "pop", color: theme.colors.card },
+    { name: "metal", color: theme.colors.card },
+    { name: "jazz", color: theme.colors.card },
+    { name: "indy", color: theme.colors.card },
+    { name: "rap", color: theme.colors.card },
   ];
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ paddingTop: 0 }}>
+    <ScrollView showsVerticalScrollIndicator={false} style={{}}>
       <View
-        style={{ flexDirection: "row", paddingLeft: 20, alignItems: "center" }}
+        style={{
+          flexDirection: "row",
+          paddingLeft: 20,
+          alignItems: "center",
+          marginTop: 60,
+        }}
       >
         <Icon name="disc" color={theme.colors.primary} size={40}></Icon>
         <Text h3 bold color={theme.colors.text} style={{ marginLeft: 10 }}>
@@ -118,11 +125,12 @@ export default function HomeScreen({ navigation }) {
                   height: 150,
                   padding: 0,
                   marginBottom: 20,
-                  shadowColor: "#000000",
-                  shadowOffset: { width: 6, height: 6 },
-                  shadowOpacity: 0.4,
-                  shadowRadius: 3,
-                  backgroundColor: item.color,
+                  shadowColor:
+                    mode == "dark" ? "#000000" : theme.colors.primary,
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0,
+                  shadowRadius: 1,
+                  backgroundColor: theme.colors.secondary,
                   borderRadius: 7,
                 }}
               >
@@ -136,7 +144,7 @@ export default function HomeScreen({ navigation }) {
                     borderRadius: 20,
                   }}
                 >
-                  <Text p bold color={"white"} numberOfLines={1}>
+                  <Text p bold color={theme.colors.card} numberOfLines={1}>
                     {item.name}
                   </Text>
                 </View>
@@ -145,6 +153,7 @@ export default function HomeScreen({ navigation }) {
           );
         })}
       </View>
+      <Footer />
     </ScrollView>
   );
 }

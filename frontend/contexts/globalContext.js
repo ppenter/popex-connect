@@ -10,7 +10,6 @@ export const GlobalContextProvider = (props) => {
 
   const toggleTrigger = () => {
     trigger ? setTrigger(false) : setTrigger(true);
-    console.log(trigger);
   };
   const value = {
     trigger: trigger,

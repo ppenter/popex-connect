@@ -4,15 +4,15 @@ import { Image, View } from "react-native";
 import { useMoralisContext } from "../../contexts/moralisContext";
 import { usePlayerContext } from "../../contexts/playerContext";
 import { useThemeContext } from "../../contexts/themeContext";
-import AddToPlaylistModalButton from "./addToPlaylistModalButton";
-export default function LongSong(props) {
+import AddToPlaylistButton from "./addToPlaylistButton";
+export default function LongPlaylist(props) {
   const theme = useThemeContext().theme;
 
   const playerContext = usePlayerContext();
 
   const allName = useMoralisContext().allName;
 
-  const { songName, artistAddress, songId, songImage } = props;
+  const { name, address, image, songId, playlistId } = props;
   return (
     <View
       style={{
@@ -27,7 +27,7 @@ export default function LongSong(props) {
       <View style={{ flexDirection: "row" }}>
         <Image
           source={{
-            url: songImage,
+            url: image,
           }}
           style={{
             width: 50,
@@ -39,32 +39,21 @@ export default function LongSong(props) {
         <View
           style={{ justifyContent: "center", paddingLeft: 15, maxWidth: "70%" }}
         >
-          <Text
-            numberOfLines={1}
-            bold
-            size={16}
-            color={
-              playerContext.playlist
-                ? playerContext.playlist[playerContext.currentIndex].attributes
-                    .uid == songId
-                  ? theme.colors.primary
-                  : theme.colors.text
-                : theme.colors.text
-            }
-          >
-            {songName}
+          <Text numberOfLines={1} bold size={16} color={theme.colors.text}>
+            {name}
           </Text>
           <Text numberOfLines={1} color={theme.colors.disable}>
-            {allName[artistAddress]
-              ? allName[artistAddress].username
-              : artistAddress}
+            {allName[address] ? allName[address].username : address}
           </Text>
         </View>
       </View>
       <View
         style={{ height: 60, alignItems: "center", justifyContent: "center" }}
       >
-        <AddToPlaylistModalButton songId={songId} />
+        <AddToPlaylistButton
+          songId={playerContext.addToPlaylistSongId}
+          playlistId={playlistId}
+        />
       </View>
     </View>
   );

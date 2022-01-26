@@ -1,11 +1,9 @@
-import { BlurView } from "expo-blur";
-import { Card, Text } from "galio-framework";
 import React from "react";
 import { FlatList, StyleSheet, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { useMoralisContext } from "../../contexts/moralisContext";
 import { usePlayerContext } from "../../contexts/playerContext";
 import { useThemeContext } from "../../contexts/themeContext";
+import SongCard from "./card";
 export default function PlaylistCarousel(props) {
   const { items, width = 160, height = 180 } = props;
   const theme = useThemeContext().theme;
@@ -40,45 +38,17 @@ export default function PlaylistCarousel(props) {
   });
 
   const renderItem = ({ item, index }) => (
-    <TouchableOpacity
+    <SongCard
+      mr={20}
+      item={item}
       onPress={(e) => {
         player.playPlaylist(items, index);
       }}
-      style={[styles.card, styles.shadowProp]}
-    >
-      <Card
-        borderless
-        style={{ width: 150, height: 150, padding: 0 }}
-        image={item.attributes.coverURI}
-        imageStyle={{ width: "100%", height: "100%" }}
-      >
-        <BlurView
-          intensity={30}
-          tint="dark"
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: 40,
-            bottom: 5,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text bold size={16} color={"white"} numberOfLines={1}>
-            {item.attributes.title}
-          </Text>
-          <Text mute numberOfLines={1} color={"white"}>
-            {allName[item.attributes.creator]
-              ? allName[item.attributes.creator].username
-              : item.attributes.creator}
-          </Text>
-        </BlurView>
-      </Card>
-    </TouchableOpacity>
+    />
   );
 
   return (
-    <View>
+    <View style={{ marginVertical: 10, paddingLeft: 20 }}>
       <FlatList
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item, index) => {

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
+import AddToPlaylistModal from "./components/modal/addToPlaylistModal";
 import { MiniPlayer, Player } from './components/musicPlayer';
 import TabNav from './components/navigation/navigator';
 import { useContractContext } from './contexts/contractContext';
@@ -26,6 +27,7 @@ export default function Index() {
       <TabNav theme={theme.theme}></TabNav>
       <MiniPlayer />
       <Player />
+      <AddToPlaylistModal />
     </View>
   );
 }

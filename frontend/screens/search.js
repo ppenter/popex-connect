@@ -1,19 +1,34 @@
+import { Text } from "galio-framework";
 import * as React from "react";
-import { useMoralis } from "react-moralis";
+import { useMoralis, useMoralisQuery } from "react-moralis";
 import { ScrollView, TextInput, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/Ionicons";
+import LongSong from "../components/button/longSong";
+import Footer from "../components/navigation/footer";
+import { usePlayerContext } from "../contexts/playerContext";
 import { useThemeContext } from "../contexts/themeContext";
 
 export default function SearchScreen({ navigation, route }) {
   const theme = useThemeContext().theme;
   const moralis = useMoralis();
+  const playerContext = usePlayerContext();
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [searchResult, setSearchResult] = React.useState([]);
+  const searchResult = useMoralisQuery(
+    "popexUpload",
+    (q) =>
+      q
+        .startsWith(
+          "title",
+          searchTerm != "" ? searchTerm : "hfuecin83uc8294o3xnurioexw"
+        )
+        .limit(50),
+    [searchTerm]
+  );
 
   React.useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      console.log(searchTerm);
+      searchResult.fetch();
     }, 1400);
 
     return () => clearTimeout(delayDebounceFn);
@@ -25,7 +40,7 @@ export default function SearchScreen({ navigation, route }) {
   };
 
   return (
-    <View style={{ paddingHorizontal: 20, paddingTop: 60 }}>
+    <View style={{ paddingHorizontal: 20, paddingTop: 60, marginBottom: 150 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <TouchableOpacity
           onPress={(e) => {
@@ -47,26 +62,36 @@ export default function SearchScreen({ navigation, route }) {
           onChangeText={(e) => setSearchTerm(e)}
         ></TextInput>
       </View>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {searchResult
-          ? searchResult.map((item, index) => {
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ minHeight: "120%", paddingTop: 10 }}
+      >
+        <Text p bold color={theme.colors.text}>
+          SONG
+        </Text>
+        {searchTerm != "" && searchResult.data
+          ? searchResult.data.map((item, index) => {
               return (
                 <TouchableOpacity
+                  key={item.attributes.uid}
                   onPress={(e) => {
-                    e.stopPropagation();
-                    playerContext.playPlaylist(songByGenre.data, index);
+                    playerContext.playPlaylist(searchResult.data, index);
                   }}
                 >
                   <LongSong
                     songId={item.attributes.uid}
                     songName={item.attributes.title}
-                    artistName={item.attributes.artist}
+                    artistAddress={item.attributes.creator}
                     songImage={item.attributes.coverURI}
                   />
                 </TouchableOpacity>
               );
             })
           : null}
+        {/* <Text p bold color={theme.colors.text}>
+          ARTIST
+        </Text> */}
+        <Footer />
       </ScrollView>
     </View>
   );

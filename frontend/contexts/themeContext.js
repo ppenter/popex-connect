@@ -12,11 +12,11 @@ export const ThemeContextProvider = (props) => {
   const lightTheme = {
     dark: false,
     colors: {
-      // primary: "#FE2472",
-      primary: "#6792FF",
-      secondary: "#84ABFF",
+      // primary: "#6792FF",
+      primary: "#F99B1B",
+      secondary: "#F0C461",
       text: "#000000",
-      background: "#FFFFFF",
+      background: "#FCFCFC",
       button: "#625ECA",
       card: "#FFFFFF",
       search: "#2C2C2C",
@@ -32,7 +32,7 @@ export const ThemeContextProvider = (props) => {
       ...lightTheme.colors,
       text: "#FFFFFF",
       // background: "#0E0B1F",
-      background: "#0E0B1F",
+      background: "#000000",
       card: "#242732",
     },
   };
@@ -46,7 +46,7 @@ export const ThemeContextProvider = (props) => {
   };
 
   const value = {
-    mode: mode,
+    mode: mode == "light" ? "light" : "dark",
     theme: mode == "light" ? lightTheme : darkTheme,
     switchTheme,
   };

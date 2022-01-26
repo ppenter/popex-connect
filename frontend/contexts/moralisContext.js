@@ -12,6 +12,7 @@ export const MoralisContext = React.createContext({
   likes: [],
   allName: {},
   handleLike: () => null,
+  handleAddToPlaylist: () => null,
 });
 
 export const MoralisContextProvider = (props) => {
@@ -73,6 +74,36 @@ export const MoralisContextProvider = (props) => {
     global.toggleTrigger();
   };
 
+  const handleAddToPlaylist = async (_songId, _playlistId) => {
+    const SongInPlaylist = moralis.Moralis.Object.extend("SongInPlaylist");
+    const query = new moralis.Moralis.Query(SongInPlaylist);
+    query.equalTo("playlistId", _playlistId);
+    query.equalTo("songId", _songId);
+    const object = await query.find();
+    if (object.length <= 0) {
+      const SongInPlaylist = moralis.Moralis.Object.extend("SongInPlaylist");
+      const newSongInPlaylist = new SongInPlaylist();
+      newSongInPlaylist.set("playlistId", _playlistId);
+      newSongInPlaylist.set(
+        "userCreatedAt",
+        moralis.Moralis.User.current().createdAt
+      );
+      newSongInPlaylist.set("songId", _songId);
+      newSongInPlaylist.set("timestamp", new Date(Date.now()));
+      const ACL = new moralis.Moralis.ACL();
+      ACL.setPublicReadAccess(true);
+      ACL.setWriteAccess(moralis.Moralis.User.current(), true);
+      newSongInPlaylist.setACL(ACL);
+      newSongInPlaylist.save();
+    } else {
+      for (var i = 0; i < object.length; i++) {
+        object[i].destroy();
+      }
+    }
+    await utils.timeout(100);
+    global.toggleTrigger();
+  };
+
   const [likesSongData, setLikesSongData] = useState([]);
 
   const value = {
@@ -80,6 +111,7 @@ export const MoralisContextProvider = (props) => {
     likes: likeOfUser,
     allName: allName.data ? allName.data : [],
     handleLike,
+    handleAddToPlaylist,
   };
 
   return (

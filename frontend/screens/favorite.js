@@ -3,6 +3,7 @@ import * as React from "react";
 import { useMoralis, useMoralisQuery } from "react-moralis";
 import { ScrollView, View } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import Footer from "../components/navigation/footer";
 import { useMoralisContext } from "../contexts/moralisContext";
 import { usePlayerContext } from "../contexts/playerContext";
 import { useThemeContext } from "../contexts/themeContext";
@@ -29,7 +30,7 @@ export default function FavoriteScreen() {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      style={{ paddingHorizontal: 20 }}
+      style={{ paddingHorizontal: 20, paddingTop: 60 }}
     >
       <View style={{ flexDirection: "row" }}>
         <Icon name="heart" color={theme.colors.primary} size={40}></Icon>
@@ -38,6 +39,7 @@ export default function FavoriteScreen() {
         </Text>
       </View>
       <FavoriteScreenObject></FavoriteScreenObject>
+      <Footer />
     </ScrollView>
   );
 }

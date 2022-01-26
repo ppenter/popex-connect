@@ -4,8 +4,8 @@ import { useMoralis } from "react-moralis";
 import { ScrollView, TextInput, View } from "react-native";
 import { Root } from "react-native-alert-notification";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { Card } from "react-native-shadow-cards";
 import Icon from "react-native-vector-icons/Ionicons";
+import SwitchThemeButton from "../components/button/switchThemeButton";
 import { useGlobalContext } from "../contexts/globalContext";
 import { useThemeContext } from "../contexts/themeContext";
 import { useWalletConnect } from "../WalletConnect";
@@ -16,6 +16,7 @@ export default function ProfileScreen({ navigation }) {
   const global = useGlobalContext();
   const colors = useThemeContext().theme.colors;
   const connector = useWalletConnect();
+  const themeContext = useThemeContext();
   const {
     authenticate,
     authError,
@@ -33,7 +34,9 @@ export default function ProfileScreen({ navigation }) {
 
   if (!isAuthenticated) {
     return (
-      <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+      <View
+        style={{ paddingHorizontal: 20, paddingTop: 60, marginBottom: 150 }}
+      >
         <View style={{ flexDirection: "row" }}>
           <Icon
             name="person-circle-outline"
@@ -43,6 +46,9 @@ export default function ProfileScreen({ navigation }) {
           <Text h3 bold color={colors.text} style={{ marginLeft: 10 }}>
             Account
           </Text>
+          <View style={{ position: "absolute", right: 0 }}>
+            <SwitchThemeButton />
+          </View>
         </View>
         <Button
           color={colors.primary}
@@ -64,7 +70,7 @@ export default function ProfileScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         style={{ paddingHorizontal: 20 }}
       >
-        <View style={{ flexDirection: "row" }}>
+        <View style={{ flexDirection: "row", marginTop: 60 }}>
           <Icon
             name="person-circle-outline"
             color={colors.primary}
@@ -73,13 +79,23 @@ export default function ProfileScreen({ navigation }) {
           <Text h3 bold color={colors.text} style={{ marginLeft: 10 }}>
             Account
           </Text>
+          <View style={{ position: "absolute", right: 0 }}>
+            <SwitchThemeButton />
+          </View>
         </View>
-        <Card
-          backgroundColor={colors.background}
-          opacity={1}
-          style={{ padding: 20, marginTop: 20 }}
-        >
-          <View style={{ alignItems: "center" }}>
+        <View opacity={1} style={{ padding: 20, marginTop: 20 }}>
+          <View
+            style={{
+              alignItems: "center",
+              shadowColor: "#000000",
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.3,
+              shadowRadius: 10,
+              backgroundColor: colors.card,
+              padding: 20,
+              borderRadius: 10,
+            }}
+          >
             <View
               style={{
                 flexDirection: "row",
@@ -147,7 +163,7 @@ export default function ProfileScreen({ navigation }) {
             </Button>
           </View>
           {/* <Input placeholder="regular" /> */}
-        </Card>
+        </View>
       </ScrollView>
     </Root>
   );

@@ -3,20 +3,23 @@ import { BlurView } from "expo-blur";
 import { Block, Card, NavBar, Text } from "galio-framework";
 import React, { useState } from "react";
 import { useMoralisCloudFunction } from "react-moralis";
-import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import Modal from "react-native-modal";
 import Icon from "react-native-vector-icons/Ionicons";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import { useMoralisContext } from "../../contexts/moralisContext";
 import { usePlayerContext } from "../../contexts/playerContext";
 import { useThemeContext } from "../../contexts/themeContext";
+import PlaylistModal from "../../screenObject/playlistModal";
 import LikeButton from "../button/likeButton";
+import PlaylistModalButton from "../button/playlistModalButton";
 
 const styles = StyleSheet.create({
   infoContainer: {
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 20,
-    padding: 30,
+    paddingHorizontal: 30,
   },
   shadowProp: {
     width: "100%",
@@ -29,7 +32,7 @@ const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
     height: "100%",
@@ -96,14 +99,18 @@ export default function Player(props) {
     ethAddress: currentSong.attributes.creator.toLowerCase(),
   });
 
-  const handleRepeatLoopButton = () => {};
-
   return (
     <Modal
-      animationType="slide"
+      animationIn="slideInUp"
+      onSwipeComplete={(e) => {
+        playerContext.closeModal();
+      }}
+      propagateSwipe={true}
+      swipeThreshold={330}
+      swipeDirection="down"
       transparent={true}
-      visible={playerContext.isModal}
-      onRequestClose={() => {}}
+      isVisible={playerContext.isModal}
+      style={{ justifyContent: "flex-end", margin: 0 }}
     >
       <BlurView intensity={100} tint={mode} style={styles.filter} />
       <NavBar
@@ -118,7 +125,7 @@ export default function Player(props) {
           </TouchableOpacity>
         }
         rightStyle={{ alignItems: "flex-end" }}
-        right={<LikeButton songId={currentSong.attributes.uid} />}
+        right={<LikeButton size={40} songId={currentSong.attributes.uid} />}
         style={{ marginTop: 60, width: "100%" }}
       />
       <View style={styles.centeredView}>
@@ -215,16 +222,17 @@ export default function Player(props) {
                   marginTop: 10,
                 }}
               >
-                {/* Repeat one icon */}
+                {/* Shuffle icon */}
                 <TouchableOpacity
                   style={{ justifyContent: "center", width: 30, height: 30 }}
                   onPress={(e) => {
                     e.preventDefault();
+                    playerContext.shufflePlaylistWhilePlaying();
                   }}
                 >
                   <Icon name="shuffle" size={30} color={theme.colors.disable} />
                 </TouchableOpacity>
-                {/* Repeat one icon */}
+                {/* Shuffle icon */}
 
                 {/* Skip back icon */}
                 <TouchableOpacity
@@ -300,7 +308,7 @@ export default function Player(props) {
                   style={{ justifyContent: "center", width: 30, height: 30 }}
                   onPress={(e) => {
                     e.preventDefault();
-                    handleRepeatLoopButton();
+                    playerContext.handleRepeatLoopButton();
                   }}
                 >
                   <MaterialIcon
@@ -324,6 +332,15 @@ export default function Player(props) {
               ></View>
             </View>
           </View>
+        </View>
+        <View
+          style={{
+            width: "100%",
+            height: 70,
+          }}
+        >
+          <PlaylistModalButton />
+          <PlaylistModal />
         </View>
       </View>
     </Modal>

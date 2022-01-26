@@ -12952,6 +12952,13 @@ react-native-alert-notification@^0.1.11:
   resolved "https://registry.yarnpkg.com/react-native-alert-notification/-/react-native-alert-notification-0.1.11.tgz#fd3c7416f799ad07a899840dc3318cda705f823d"
   integrity sha512-lkojtS5q/QIdzwRdL6Ezsc9jsUD8NpeoVJ2diytW4A/m2zyQfyu+TF77h2X8kJgrqkstMdkBekme8zIQjejMOg==
 
+react-native-animatable@1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/react-native-animatable/-/react-native-animatable-1.3.3.tgz#a13a4af8258e3bb14d0a9d839917e9bb9274ec8a"
+  integrity sha512-2ckIxZQAsvWn25Ho+DK3d1mXIgj7tITkrS4pYDvx96WyOttSvzzFeQnM2od0+FUMzILbdHDsDEqZvnz1DYNQ1w==
+  dependencies:
+    prop-types "^15.7.2"
+
 react-native-crypto-js@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/react-native-crypto-js/-/react-native-crypto-js-1.0.0.tgz#e677e022e147f41b35614416c92d655f87e2450a"
@@ -13011,6 +13018,14 @@ react-native-localhost@1.0.0:
     app-root-path "^3.0.0"
     ip "^1.1.5"
 
+react-native-modal@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-modal/-/react-native-modal-13.0.0.tgz#b7117400cae8548e713eed760077dee44f78628e"
+  integrity sha512-k6r9T31mc7HIDFj1V53ceAAN1dwc8052c4JLtDVEmEQ19Bbq9yiLXoDsQuNb+hB8A+2tVOXmo5Gq4IQfb11upw==
+  dependencies:
+    prop-types "^15.6.2"
+    react-native-animatable "1.3.3"
+
 react-native-music-control@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/react-native-music-control/-/react-native-music-control-1.4.0.tgz#8c1793e3899a327b6f74fada4f8d04b9f2b3d0c7"
@@ -13063,6 +13078,11 @@ react-native-svg@9.6.4:
   version "9.6.4"
   resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-9.6.4.tgz#f9ceb228efd07317a5f9c378c6b9c5e13ff50cd0"
   integrity sha512-6SlbGx0vlXHyDPQXSpX+8o6bNjxKFNJsISoboAkR7YWW6hdnkMg/HJXCgT6oJC0/ClKtSO7ZPrQcK4HR65kDNg==
+
+react-native-swipe-gestures@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/react-native-swipe-gestures/-/react-native-swipe-gestures-1.0.5.tgz#a172cb0f3e7478ccd681fd36b8bfbcdd098bde7c"
+  integrity sha512-Ns7Bn9H/Tyw278+5SQx9oAblDZ7JixyzeOczcBK8dipQk2pD7Djkcfnf1nB/8RErAmMLL9iXgW0QHqiII8AhKw==
 
 react-native-unimodules@0.14.10:
   version "0.14.10"

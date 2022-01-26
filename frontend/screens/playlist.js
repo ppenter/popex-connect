@@ -3,15 +3,16 @@ import * as React from "react";
 import { ScrollView, View } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import AddPlaylistButton from "../components/button/addPlaylistButton";
+import Footer from "../components/navigation/footer";
 import { useThemeContext } from "../contexts/themeContext";
 import PlaylistScreenObject from "../screenObject/playlistObject";
 
-export default function PlaylistScreen(props) {
+export default function PlaylistScreen({ navigation, route }) {
   const theme = useThemeContext().theme;
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      style={{ paddingHorizontal: 20 }}
+      style={{ paddingHorizontal: 20, marginBottom: 150, paddingTop: 60 }}
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Icon
@@ -26,7 +27,11 @@ export default function PlaylistScreen(props) {
           <AddPlaylistButton />
         </View>
       </View>
-      <PlaylistScreenObject></PlaylistScreenObject>
+      <PlaylistScreenObject
+        navigation={navigation}
+        route={route}
+      ></PlaylistScreenObject>
+      <Footer />
     </ScrollView>
   );
 }

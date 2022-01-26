@@ -11,25 +11,30 @@ export default function MiniPlayer(props) {
   const playerContext = usePlayerContext();
   const theme = useThemeContext().theme;
   const allName = useMoralisCloudFunction("getUsernameOfAllAddress");
-  if (
-    !playerContext.playlist ||
-    playerContext.isModal ||
-    !playerContext.playbackInstance ||
-    !playerContext.playbackInstance._loaded ||
-    !allName.data
-  ) {
+
+  if (playerContext.playlist || playerContext.isMiniModal) {
+  } else {
     return null;
   }
 
-  // if (!playerContext.playbackInstance) {
-  //   return null;
-  // } else {
-  //   if (!playerContext.playbackInstance._loaded || !playerContext.playlist) {
+  // if (
+  //   !playerContext.playlist ||
+  //   playerContext.isModal ||
+  //   !playerContext.playbackInstance ||
+  //   !playerContext.playbackInstance._loaded ||
+  //   !allName.data
+  // ) {
+  //   if (PlayerContext.playlist) {
+  //     return <View style={{ ...containerStyle }}></View>;
+  //   } else {
   //     return null;
   //   }
   // }
 
-  const currentSong = playerContext.playlist[playerContext.currentIndex];
+  const currentSong =
+    playerContext.playlist && playerContext.playbackInstance._loaded
+      ? playerContext.playlist[playerContext.currentIndex]
+      : null;
 
   const {
     icon = "home",
@@ -40,27 +45,26 @@ export default function MiniPlayer(props) {
 
   const containerStyle = {
     display: "flex",
-    width: "100%",
+    left: 20,
+    right: 20,
     maxWidth: 1000,
-    height: 60,
-    bottom: 80,
+    height: 70,
+    bottom: 75,
     position: "absolute",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-    backgroundColor: theme.colors.background,
+    justifyContent: "center",
   };
   const innerContainerStyle = {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     width: "100%",
     height: "100%",
-    backgroundColor: theme.colors.background,
-    paddingTop: 10,
-    borderRadius: 20,
+    backgroundColor: theme.colors.card,
+    borderRadius: 10,
     justifyContent: "space-between",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: -5 },
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
   };
@@ -89,31 +93,24 @@ export default function MiniPlayer(props) {
         style={{ ...innerContainerStyle }}
       >
         <View style={{ ...trackContainer }}>
-          <View style={{ width: 40, height: 40 }}>
+          <View style={{ width: 50, height: 50 }}>
             <Image
               style={{ width: "100%", height: "100%", borderRadius: 10 }}
               source={{
-                url: playerContext.playbackInstance._loaded
-                  ? currentSong.attributes.coverURI
-                  : "",
+                url: currentSong ? currentSong.attributes.coverURI : "",
               }}
             />
           </View>
-          <View style={{ marginLeft: 20 }}>
+          <View style={{ marginLeft: 20, width: "50%" }}>
             <Text bold size={16} numberOfLines={1} color={theme.colors.text}>
-              {playerContext.playbackInstance._loaded
-                ? currentSong.attributes.title
-                : ""}
+              {currentSong ? currentSong.attributes.title : "Loading..."}
             </Text>
-            <Text
-              mute
-              numberOfLines={1}
-              color={theme.colors.disable}
-              style={{ maxWidth: "70%" }}
-            >
-              {allName.data[currentSong.attributes.creator]
-                ? allName.data[currentSong.attributes.creator].username
-                : currentSong.attributes.creator}
+            <Text mute numberOfLines={1} color={theme.colors.disable}>
+              {currentSong
+                ? allName.data[currentSong.attributes.creator]
+                  ? allName.data[currentSong.attributes.creator].username
+                  : currentSong.attributes.creator
+                : ""}
             </Text>
           </View>
         </View>
@@ -123,7 +120,7 @@ export default function MiniPlayer(props) {
             ...buttonContainer,
             position: "absolute",
             right: 0,
-            top: 5,
+            height: "100%",
           }}
         >
           <View
